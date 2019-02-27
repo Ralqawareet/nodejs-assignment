@@ -72,7 +72,11 @@ const readOutLoud = (vehicleName, backword, first_run = false) => {
 						// all_obj.push(obj);
 						(function (line_) {
 							returnJoureny.once(`line-${index}`, () => {
+								// 1- first options is write to a stream and eventually save 
 								reversedStream.write(`${Object.values(line_).join(",")}\n`);
+								// 2- or just immediately publish it 
+								// nats.publish(`vehicle.${vehicleName}`, line_)
+
 							});
 						})(obj)
 						index += 1;
