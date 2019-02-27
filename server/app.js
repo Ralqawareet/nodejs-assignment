@@ -8,7 +8,7 @@ if (result.error) {
     throw result.error;
 }
 const path = require('path');
-const Vehicle = require('./models/vehicle.js');
+const { Vehicle } = require('./models/vehicle.js');
 
 
 

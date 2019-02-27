@@ -1,5 +1,5 @@
 const Joi = require('joi');
-const Vehicle = require('../models/vehicle.js');
+const { Vehicle, Vehicle_validate } = require('../models/vehicle.js');
 const moment = require('moment');
 // console.log(Vehicle, "SS");
 
@@ -31,13 +31,11 @@ module.exports = [{
         handler: (req, h) => {
             return Vehicle.find({
                 time: { $gte: req.query.from, $lte: req.query.to }
-            }, (err, docs) => {
-                if (err) {
-                    return err;
-                }
-                return docs
-
-            });
+            }).then(docs => {
+                return docs;
+            }).catch(err => {
+                return err;
+            })
         },
     },
 }, {
@@ -73,5 +71,32 @@ module.exports = [{
 
             });
         },
-    },
+    }
+}, {
+    method: 'POST',
+    path: '/vehicles/{vehicle_id}',
+    options: {
+        description: 'createa a new vehicle\'s document',
+        notes: 'Returns the document newly created',
+        tags: ['api', 'http'],
+        validate: {
+            params: {
+                vehicle_id: Joi.string()
+                    .required()
+                    .description('the id of the vehicle'),
+            },
+            payload: Vehicle_validate
+        },
+        handler: (req, h) => {
+            console.log(req.params);
+            // console.log('Msg received on [' + subject + '] : ' + msg);
+            let vehicle = new Vehicle(req.payload);
+            vehicle['vehicle_id'] = req.params.vehicle_id;
+            return vehicle.save().then(doc => {
+                return doc;
+            }).catch(err => {
+                return err;
+            });
+        },
+    }
 }]

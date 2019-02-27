@@ -1,6 +1,17 @@
 const mongoose = require('mongoose');
 const Joi = require('joi');
 
+
+// Joi validation for vehicle 
+const Vehicle_validate = Joi.object({
+    vehicle_id: Joi.string().required(),
+    time: Joi.number().required(),
+    energy: Joi.number().required(),
+    speed: Joi.number().required(),
+    gps: Joi.array().required(),
+    soc: Joi.string().required(),
+    odo: Joi.number().required()
+})
 // mongodb vehicle scheme
 const Schema = mongoose.Schema;
 const vehicleScheme = new Schema({
@@ -44,4 +55,7 @@ const vehicleScheme = new Schema({
     },
 }, { autoIndex: false });
 
-module.exports = mongoose.model('Vehicle', vehicleScheme, 'vehicles');
+module.exports = {
+    Vehicle_validate,
+    Vehicle: mongoose.model('Vehicle', vehicleScheme, 'vehicles')
+};
