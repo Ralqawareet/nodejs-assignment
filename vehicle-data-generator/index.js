@@ -6,10 +6,17 @@ There are 2 question points for you to tell us the answer on your presentation
 If you're up for it
 
 */
-const csvParse      = require ( "csv-parse")
-const fs            = require ( "fs")
-const Writable      = require ("stream").Writable
+const csvParse = require("csv-parse")
+const fs = require("fs")
+const Writable = require("stream").Writable
+const EventEmitter = require("events").EventEmitter
 
+
+const returnJoureny = new EventEmitter();
+// number of steps
+let index = 0;
+const reversedStream = fs.createWriteStream('reversedStream.csv'); // transform 
+reversedStream.write('time,energy,gps,odo,speed,soc\n');
 // NATS Server is a simple, high performance open source messaging system
 // for cloud native applications, IoT messaging, and microservices architectures.
 // https://nats.io/
@@ -21,10 +28,10 @@ const NATS = require("nats")
 
 // NATS connection happens here
 // After a connection is made you can start broadcasting messages (take a look at nats.publish())
-const nats = NATS.connect({json: true})
+const nats = NATS.connect({ json: true })
 
 // This function will start reading out csv data from file and publish it on nats
-const readOutLoud = (vehicleName) => {
+const readOutLoud = (vehicleName, backword, first_run = false) => {
 	// Read out meta/route.csv and turn it into readable stream
 	const fileStream = fs.createReadStream("./meta/route.csv")
 	// =========================
@@ -56,8 +63,20 @@ const readOutLoud = (vehicleName) => {
 				setTimeout(() => {
 
 					i++
-					if((i % 100) === 0)
+					if ((i % 100) === 0)
 						console.log(`vehicle ${vehicleName} sent have sent ${i} messages`)
+
+
+					// register an event once for every line 
+					if (first_run) {
+						// all_obj.push(obj);
+						(function (line_) {
+							returnJoureny.once(`line-${index}`, () => {
+								reversedStream.write(`${Object.values(line_).join(",")}\n`);
+							});
+						})(obj)
+						index += 1;
+					}
 
 					// The first parameter on this function is topics in which data will be broadcasted
 					// it also includes the vehicle name to seggregate data between different vehicle
@@ -73,11 +92,25 @@ const readOutLoud = (vehicleName) => {
 	// Maybe you can try to emulate those slow connection
 	// =========================
 }
-
+let backword = false;
+let first_run = true;
 // This next few lines simulate Henk's (our favorite driver) shift
 console.log("Henk checks in on test-bus-1 starting his shift...")
-readOutLoud("test-bus-1")
+readOutLoud("test-bus-1", backword, first_run)
 	.once("finish", () => {
+		backword = !backword; // flip roads
 		console.log("henk is on the last stop and he is taking a cigarrete while waiting for his next trip")
+		// console.log(index, 'index');
+		if (first_run) {
+			console.log('first run >>');
+			for (let i = index; i >= 0; i--) {
+				returnJoureny.emit(`line-${i}`);
+			}
+			reversedStream.end();
+		}
+		first_run = false;
+		readOutLoud("test-bus-1", backword).once("finish", () => {
+			console.log("Henk has finished the first round trip and he is now ready to start looping for ever");
+		})
 	})
 // To make your presentation interesting maybe you can make henk drive again in reverse
