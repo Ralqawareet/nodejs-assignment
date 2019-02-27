@@ -11,6 +11,7 @@ const fs = require("fs")
 const Writable = require("stream").Writable
 const EventEmitter = require("events").EventEmitter
 
+const getMaxSpeed = require('../utils/getMaxSpeed');
 
 const returnJoureny = new EventEmitter();
 // number of steps
@@ -60,11 +61,16 @@ const readOutLoud = (vehicleName, backword, first_run = false) => {
 				// setTimeout in this case is there to emulate real life situation
 				// data that came out of the vehicle came in with irregular interval
 				// Hence the Math.random() on the second parameter
-				setTimeout(() => {
+				setTimeout(async () => {
 
-					i++
-					if ((i % 100) === 0)
+
+					// will ask max speed limit every ~15 sec and will it use until next update
+					// assuming we are dealing with real data this should be fine
+					// otherwise we will be tracking formula 1 and will ddos the service :) 
+					if ((i % 100) === 0 || i === 0) {
 						console.log(`vehicle ${vehicleName} sent have sent ${i} messages`)
+						obj['max_speed'] = await getMaxSpeed(...obj.gps.split("|"));
+					}
 
 
 					// register an event once for every line 
@@ -81,7 +87,7 @@ const readOutLoud = (vehicleName, backword, first_run = false) => {
 						})(obj)
 						index += 1;
 					}
-
+					i++
 					// The first parameter on this function is topics in which data will be broadcasted
 					// it also includes the vehicle name to seggregate data between different vehicle
 
