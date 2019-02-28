@@ -16,8 +16,8 @@ const getMaxSpeed = require('../utils/getMaxSpeed');
 const returnJoureny = new EventEmitter();
 // number of steps
 let index = 0;
-const reversedStream = fs.createWriteStream('reversedStream.csv'); // transform 
-reversedStream.write('time,energy,gps,odo,speed,soc\n');
+const reversedStream = fs.createWriteStream('./meta/reversedStream.csv');
+reversedStream.write('time,energy,gps,odo,speed,soc,maxspeed\n');
 // NATS Server is a simple, high performance open source messaging system
 // for cloud native applications, IoT messaging, and microservices architectures.
 // https://nats.io/
@@ -34,7 +34,9 @@ const nats = NATS.connect({ json: true })
 // This function will start reading out csv data from file and publish it on nats
 const readOutLoud = (vehicleName, backward, first_run = false) => {
 	// Read out meta/route.csv and turn it into readable stream
-	const fileStream = fs.createReadStream("./meta/route.csv")
+	const path = backward ? "./meta/reversedStream.csv" : "./meta/route.csv";
+
+	const fileStream = fs.createReadStream(path)
 	// =========================
 	// Question Point 1:
 	// What's the difference betweeen fs.createReadStream, fs.readFileSync, and fs.readFileAsync?
@@ -50,7 +52,7 @@ const readOutLoud = (vehicleName, backward, first_run = false) => {
 	//
 
 	let i = 0
-
+	let maxspeed = null;
 	return (fileStream
 		// Filestream piped to csvParse which accept nodejs readablestreams and parses each line to a JSON object
 		.pipe(csvParse({ delimiter: ",", columns: true, cast: true }))
@@ -69,8 +71,9 @@ const readOutLoud = (vehicleName, backward, first_run = false) => {
 					// otherwise we will be tracking formula 1 and will ddos the service :) 
 					if ((i % 100) === 0 || i === 0) {
 						console.log(`vehicle ${vehicleName} sent have sent ${i} messages`)
-						obj['max_speed'] = await getMaxSpeed(...obj.gps.split("|"));
+						max_speed = await getMaxSpeed(...obj.gps.split("|"));
 					}
+					obj['max_speed'] = maxspeed;
 
 
 					// register an event once for every line 
