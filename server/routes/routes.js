@@ -2,6 +2,15 @@ const Joi = require('joi');
 const { Vehicle, vehicleValidation, VehicleQueryValidate } = require('../models/vehicle.js');
 
 module.exports = [{
+    // endpoint to serve static files css , js , img
+    method: 'GET',
+    path: '/{param*}',
+    handler: {
+        directory: {
+            path: `${process.cwd()}/dist`
+        }
+    }
+}, {
     method: 'GET',
     path: '/',
     options: {
@@ -73,7 +82,7 @@ module.exports = [{
     method: 'POST',
     path: '/vehicles/{vehicle_id}',
     options: {
-        description: 'createa a new vehicle\'s document',
+        description: 'create a new vehicle\'s document',
         notes: 'Returns the document newly created',
         tags: ['api', 'http'],
         validate: {
