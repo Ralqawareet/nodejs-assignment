@@ -6,10 +6,10 @@ const moment = require('moment');
 const vehicleValidation = {
     query: Joi.object({
         from: Joi.number()
-            .default(moment().subtract(30, 'minutes').unix())
+            .default(moment().subtract(30, 'minutes').valueOf())
             .optional().description('get documents from this timestamp'),
         to: Joi.number()
-            .default(moment().unix())
+            .default(moment().valueOf())
             .optional().description('get documents up to this timestamp')
     }),
     payload: Joi.object({
@@ -21,9 +21,11 @@ const vehicleValidation = {
         soc: Joi.string().required(),
         odo: Joi.number().required()
     }),
-    param: Joi.string()
-        .required()
-        .description('the id of the vehicle')
+    param: Joi.object({
+        vehicle_id: Joi.string()
+            .required()
+            .description('the id of the vehicle')
+    }),
 };
 const numberValidation = {
     validator: function (v) {
@@ -38,7 +40,7 @@ const Schema = mongoose.Schema;
 const vehicleScheme = new Schema({
     vehicle_id: { type: String, required: true },
     // setup timestamp to now as default 
-    time: { type: Number, default: moment().unix() },
+    time: { type: Number, default: moment().valueOf() },
     energy: {
         type: Number,
         validate: numberValidation
