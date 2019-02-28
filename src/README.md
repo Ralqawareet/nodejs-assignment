@@ -11,7 +11,7 @@ To view the application the following scripts can be used :
 npm run dev
 ```
 will start webpack development server and run the application in development mode.<br>
-You can view the application at http://localhost:3000.
+You can view the application at http://localhost:8080.
 
 ```
 npm run build

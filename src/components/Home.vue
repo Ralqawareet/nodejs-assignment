@@ -51,6 +51,8 @@ import GoogleMaps from "./GoogleMaps";
 import ProgressBar from "./ProgressBar";
 import LineChart from "./LineChart";
 import * as moment from "moment";
+import socChart from "../config/socChart.js";
+import speedChart from "../config/speedChart.js";
 export default {
   data() {
     return {
@@ -68,43 +70,7 @@ export default {
           }
         ]
       },
-      socChart_options: {
-        elements: {
-          line: {
-            borderColor: "#f87979"
-          },
-          point: {
-            radius: 0
-          }
-        },
-        scales: {
-          yAxes: [
-            {
-              scaleLabel: {
-                display: true,
-                labelString: "State of charge (%)"
-              },
-              ticks: {
-                stepSize: 20,
-                beginAtZero: true,
-                max: 100
-              }
-            }
-          ],
-          xAxes: [
-            {
-              gridLines: {
-                display: false
-              }
-            }
-          ]
-        },
-        legend: {
-          display: true
-        },
-        responsive: true,
-        maintainAspectRatio: false
-      },
+      socChart_options: socChart,
       speedChart_data: {
         labels: [],
         datasets: [
@@ -116,46 +82,7 @@ export default {
           }
         ]
       },
-      speedChart_options: {
-        tooltip: {
-          enabled: false
-        },
-        elements: {
-          line: {
-            borderColor: "#f87979"
-          },
-          point: {
-            radius: 0
-          }
-        },
-        scales: {
-          yAxes: [
-            {
-              scaleLabel: {
-                display: true,
-                labelString: "Speed (km/h)"
-              },
-              ticks: {
-                stepSize: 5
-                // beginAtZero: true
-                //   max: 100
-              }
-            }
-          ],
-          xAxes: [
-            {
-              gridLines: {
-                display: false
-              }
-            }
-          ]
-        },
-        legend: {
-          display: true
-        },
-        responsive: true,
-        maintainAspectRatio: false
-      }
+      speedChart_options: speedChart
     };
   },
   created() {
@@ -166,19 +93,21 @@ export default {
     ws.onmessage = msg => {
       const data = JSON.parse(msg.data);
       this.newLocation = data.gps[0].split("|");
-      const d_set = this.socChart_data.datasets[0].data.slice() || [];
+      const soc_data_set = this.socChart_data.datasets[0].data.slice() || [];
       const lbl_set = this.socChart_data.labels.slice() || [];
 
-      const speed_d_set = this.speedChart_data.datasets[0].data.slice() || [];
+      const speed_data_set =
+        this.speedChart_data.datasets[0].data.slice() || [];
 
-      d_set.push(parseFloat(data.soc));
+      soc_data_set.push(parseFloat(data.soc));
       lbl_set.push(moment.unix(data.time).format("HH:mm"));
 
-      speed_d_set.push(parseFloat(data.speed));
-      if (d_set.length > 5) {
-        d_set.shift();
+      speed_data_set.push(parseFloat(data.speed));
+      // restrict data points on both charts to 5
+      if (soc_data_set.length > 5) {
+        soc_data_set.shift();
         lbl_set.shift();
-        speed_d_set.shift();
+        speed_data_set.shift();
       }
 
       this.socChart_data = {
@@ -188,7 +117,7 @@ export default {
             label: "State of charge",
             fill: false,
             backgroundColor: "#f87979",
-            data: d_set
+            data: soc_data_set
           }
         ]
       };
@@ -199,7 +128,7 @@ export default {
             label: "Speed",
             fill: false,
             backgroundColor: "#f87979",
-            data: speed_d_set
+            data: speed_data_set
           }
         ]
       };

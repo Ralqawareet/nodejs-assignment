@@ -9,7 +9,7 @@
       @update:bounds="boundsUpdated"
     >
       <l-tile-layer :url="url"></l-tile-layer>
-      <l-moving-marker :lat-lng="markerLatLng" :duration="1000" :keepAtCenter="true"></l-moving-marker>
+      <l-moving-marker :lat-lng="markerLatLng" :duration="250" :keepAtCenter="true"></l-moving-marker>
     </LMap>
   </div>
 </template>
