@@ -13,7 +13,7 @@ const EventEmitter = require("events").EventEmitter
 
 const getMaxSpeed = require('../utils/getMaxSpeed');
 
-const returnJoureny = new EventEmitter();
+const eventEmitter = new EventEmitter();
 // number of steps
 let index = 0;
 const reversedStream = fs.createWriteStream('./meta/reversedStream.csv');
@@ -80,7 +80,7 @@ const readOutLoud = (vehicleName, backward, first_run = false) => {
 					if (first_run) {
 						// all_obj.push(obj);
 						(function (line_) {
-							returnJoureny.once(`line-${index}`, () => {
+							eventEmitter.once(`line-${index}`, () => {
 								// 1- first options is write to a stream and eventually save 
 								reversedStream.write(`${Object.values(line_).join(",")}\n`);
 								// 2- or just immediately publish it once event is triggered
@@ -105,23 +105,32 @@ const readOutLoud = (vehicleName, backward, first_run = false) => {
 	// Maybe you can try to emulate those slow connection
 	// =========================
 }
-let backward = false;
-let first_run = true;
-// This next few lines simulate Henk's (our favorite driver) shift
-console.log("Henk checks in on test-bus-1 starting his shift...")
-readOutLoud("test-bus-1", backward, first_run)
-	.once("finish", () => {
-		backward = !backward; // flip roads
-		console.log("henk is on the last stop and he is taking a cigarrete while waiting for his next trip");
-		if (first_run) {
-			for (let i = index; i >= 0; i--) {
-				returnJoureny.emit(`line-${i}`);
-			}
-			reversedStream.end();
-		}
-		first_run = false;
-		readOutLoud("test-bus-1", backward).once("finish", () => {
-			console.log("Henk has finished the first round trip and he is now ready to start looping for ever");
-		})
-	})
+
 // To make your presentation interesting maybe you can make henk drive again in reverse
+let numberOfJournies = 0;
+
+function startAJourney() {
+	let backward = false;
+	let first_run = true;
+	// This next few lines simulate Henk's (our favorite driver) shift
+	console.log("Henk checks in on test-bus-1 starting his shift...")
+	readOutLoud("test-bus-1", backward, first_run)
+		.once("finish", () => {
+			backward = !backward; // flip roads
+			console.log("henk is on the last stop and he is taking a cigarrete while waiting for his next trip");
+			if (first_run) {
+				for (let i = index; i >= 0; i--) {
+					eventEmitter.emit(`line-${i}`);
+				}
+				reversedStream.end();
+			}
+			first_run = false;
+			readOutLoud("test-bus-1", backward).once("finish", () => {
+				numberOfJournies++;
+				console.log(`Henk has finished the round trip number ${numberOfJournies}`);
+				eventEmitter.emit('another_journey');
+			})
+		})
+}
+startAJourney();
+eventEmitter.on('another_journey', startAJourney);
