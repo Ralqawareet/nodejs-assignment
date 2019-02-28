@@ -1,6 +1,5 @@
 'use-strict';
-// use development enviroment variables
-// unless production requested for the sake of this assignment 
+// use development environment variables as default
 const result = require('dotenv').config({
     path: `${process.cwd()}/config/${((process.env.NODE_ENV === "production") ? 'prod' : 'dev')}.env`
 })
@@ -13,10 +12,8 @@ const { Vehicle } = require('./models/vehicle.js');
 
 
 // server
-const Inert = require('inert');
-const Vision = require('vision');
 const Hapi = require('hapi');
-
+const plugins = require('./plugins/serverPlugins');
 const server = Hapi.server({
     port: 8000,
     host: 'localhost'
@@ -60,7 +57,6 @@ const nats = NATS.connect({
 nats.on('connect', (c) => {
     console.log('connected to nats');
     nats.subscribe('vehicle.>', async function (msg, reply, subject) {
-        // console.log('Msg received on [' + subject + '] : ' + msg);
         let v = new Vehicle(JSON.parse(msg));
         v['vehicle_id'] = subject.split('.').pop();
         v.save((err) => {
@@ -77,41 +73,16 @@ nats.on('error', (err) => {
 
 
 const init = async () => {
-    // register hapi plugin for autop documentation of api for development enviroment only
-    // documentaion enpoint will be available at localhost:8000/docs
-
+    // this plugin will expose /docs endpoint with endpoints documentation
+    // will be registered for only in development environment 
     if (process.env.NODE_ENV === "development") {
-        console.log('regisertin docs')
+
         try {
             await server.register([
                 require('inert'),
                 require('vision'),
-                {
-                    plugin: require('hapi-swaggered'),
-                    options: {
-                        schemes: ['http', 'ws'],
-                        info: {
-                            title: 'NodeJS Assignement',
-                            description: '',
-                            version: '1.0'
-                        }
-                    }
-                },
-                {
-                    plugin: require('hapi-swaggered-ui'),
-                    options: {
-                        title: 'NodeJS Assignement',
-                        path: '/docs',
-                    }, authorization: {
-                        field: 'apiKey',
-                        scope: 'query', // header works as well
-                        // valuePrefix: 'bearer '// prefix incase
-                        defaultValue: 'demoKey',
-                        placeholder: 'Enter your apiKey here'
-                    }, swaggerOptions: {
-                        validatorUrl: null
-                    }
-                }
+                plugins.hapiSwaggered,
+                plugins.hapiSwaggeredUi
             ])
         } catch (err) {
             throw err;

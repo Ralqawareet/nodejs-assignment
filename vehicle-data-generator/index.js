@@ -80,7 +80,7 @@ const readOutLoud = (vehicleName, backword, first_run = false) => {
 							returnJoureny.once(`line-${index}`, () => {
 								// 1- first options is write to a stream and eventually save 
 								reversedStream.write(`${Object.values(line_).join(",")}\n`);
-								// 2- or just immediately publish it 
+								// 2- or just immediately publish it once event is triggered
 								// nats.publish(`vehicle.${vehicleName}`, line_)
 
 							});
@@ -109,10 +109,8 @@ console.log("Henk checks in on test-bus-1 starting his shift...")
 readOutLoud("test-bus-1", backword, first_run)
 	.once("finish", () => {
 		backword = !backword; // flip roads
-		console.log("henk is on the last stop and he is taking a cigarrete while waiting for his next trip")
-		// console.log(index, 'index');
+		console.log("henk is on the last stop and he is taking a cigarrete while waiting for his next trip");
 		if (first_run) {
-			console.log('first run >>');
 			for (let i = index; i >= 0; i--) {
 				returnJoureny.emit(`line-${i}`);
 			}

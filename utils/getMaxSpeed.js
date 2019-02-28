@@ -1,4 +1,3 @@
-
 const axios = require('axios');
 
 module.exports = async function getMaxSpeead(lat, long) {
@@ -14,7 +13,6 @@ module.exports = async function getMaxSpeead(lat, long) {
 
         // look for the max speed tag on the elements we got 
         if (data.elements.length > 0) {
-            console.log(data.elements[0].tags.maxspeed, "Gotcha ");
             return data.elements[0].tags.maxspeed;
         } else {
             return null;
