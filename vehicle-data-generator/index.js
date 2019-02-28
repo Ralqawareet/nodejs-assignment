@@ -32,7 +32,7 @@ const NATS = require("nats")
 const nats = NATS.connect({ json: true })
 
 // This function will start reading out csv data from file and publish it on nats
-const readOutLoud = (vehicleName, backword, first_run = false) => {
+const readOutLoud = (vehicleName, backward, first_run = false) => {
 	// Read out meta/route.csv and turn it into readable stream
 	const fileStream = fs.createReadStream("./meta/route.csv")
 	// =========================
@@ -102,13 +102,13 @@ const readOutLoud = (vehicleName, backword, first_run = false) => {
 	// Maybe you can try to emulate those slow connection
 	// =========================
 }
-let backword = false;
+let backward = false;
 let first_run = true;
 // This next few lines simulate Henk's (our favorite driver) shift
 console.log("Henk checks in on test-bus-1 starting his shift...")
-readOutLoud("test-bus-1", backword, first_run)
+readOutLoud("test-bus-1", backwood, first_run)
 	.once("finish", () => {
-		backword = !backword; // flip roads
+		backward = !backward; // flip roads
 		console.log("henk is on the last stop and he is taking a cigarrete while waiting for his next trip");
 		if (first_run) {
 			for (let i = index; i >= 0; i--) {
@@ -117,7 +117,7 @@ readOutLoud("test-bus-1", backword, first_run)
 			reversedStream.end();
 		}
 		first_run = false;
-		readOutLoud("test-bus-1", backword).once("finish", () => {
+		readOutLoud("test-bus-1", backward).once("finish", () => {
 			console.log("Henk has finished the first round trip and he is now ready to start looping for ever");
 		})
 	})
