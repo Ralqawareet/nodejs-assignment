@@ -106,7 +106,7 @@ let backward = false;
 let first_run = true;
 // This next few lines simulate Henk's (our favorite driver) shift
 console.log("Henk checks in on test-bus-1 starting his shift...")
-readOutLoud("test-bus-1", backwood, first_run)
+readOutLoud("test-bus-1", backward, first_run)
 	.once("finish", () => {
 		backward = !backward; // flip roads
 		console.log("henk is on the last stop and he is taking a cigarrete while waiting for his next trip");

@@ -9,8 +9,6 @@ module.exports = async function getMaxSpeead(lat, long) {
     try {
         const response = await axios.get(queryUrl)
         const data = response.data;
-        console.log(data, "data");
-
         // look for the max speed tag on the elements we got 
         if (data.elements.length > 0) {
             return data.elements[0].tags.maxspeed;
